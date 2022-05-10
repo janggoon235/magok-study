@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>망델브롯 집합</title>
+  <script>
+    const displayCenter = (xc, yc) => {
+      document.getElementById('xc').innerHTML = xc.toFixed(3);
+      document.getElementById('yc').innerHTML = yc.toFixed(3);
+    }
+    const mandelbrot = (c, xc, yc, magStr, maxitStr) => {
+      console.log('mandelbrot');
+      try {
+        const w = c.canvas.width;
+        const h = c.canvas.height;
+        const mag = parseFloat(magStr);
+        const maxit = parseFloat(maxitStr);
+        const  xmin = xc - 1/mag;
+        const  xmax = xc + 1/mag;
+        const  ymin = yc - (xmax-xmin)*h/w/2;
+        const  ymax = yc + (xmax-xmin)*h/w/2;
+        const  dx = (xmax-xmin)/w;
+        const  dy = (ymax-ymin)/h;
+        const  color = [];
+        let  L = 255, dL = 255/maxit;
+  
+        color[0] = 'black';
+        for(let i = maxit; i>0; i--) {
+          color[i] = `rgb(255, "${Math.floor(L)}", 255)`;
+          L -= dL;
+        }
+  
+        for (let i = 0; i<w; i++) {
+          const x = xmin + i*dx;
+          for (let j =0; j<h; j++) {
+            const y = ymin + j*dy;
+            let a = x, b = y;
+  
+            let a2 = a*a, b2 = b*b;
+  
+            for (let count=maxit; a2+b2<=4 && count; count--) {
+              b = 2*a*b + y;
+              a = a2 - b2 + x;
+              a2 = a*a;
+              b2 = b*b;
+              c.fillStyle = color[count];
+              c.fillRect(i,j,0.1,0.1);
+            }
+          }
+        }
+      } catch(e) {
+        console.error(e.message);
+      }
+
+    }
+    window.onload = () => {
+      const canvas = document.getElementById('mycanvas');
+      const ctx = canvas.getContext('2d');
+      const width = canvas.width;
+      const height = canvas.height;
+      const magValue = document.getElementById('magnification').value; 
+      let xc = -0.6, yc = 0;
+      
+      const draw = () => {
+        try {
+          displayCenter(xc, yc);
+          mandelbrot(
+            ctx,
+            xc,
+            yc,
+            magValue,
+            document.getElementById('maxit').value
+          );
+        } catch(e) {
+          console.error(e.message);
+        }
+      };
+
+      document.getElementById('drawBtn').onclick = draw;
+      canvas.onclick = (e) => {
+        const ix = e.offsetX,
+          iy = e.offsetY;
+        const mag = parseFloat(magValue);
+        xc += (2*ix/width - 1)/mag;
+        yc += (2*iy-height)/mag/width;
+        draw();
+      }
+
+      draw();
+
+    }
+  </script>
+  <style>
+    #mycanvas{
+      border: 1px solid gray;
+    }
+    input {
+      margin: 0 10px; 
+      width: 60px; 
+      text-align: center;
+    }
+    div {
+      font-size: small;
+      margin-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="mycanvas" width="800" height="640"></canvas>
+  <div>중심좌표(<span id="xc"></span>,<span id="yc"></span>) 마우스로 클릭하면 바뀝니다  </div>
+  <div>
+    <label>확대 배율 : <input id="magnification" type="number" value="0.65" > </label>
+    <label>최대 반복 횟수 : <input id="maxit" type="number" value="60" > </label>
+    <button id="drawBtn">그리기</button>
+  </div>
+</body>
+</html>
